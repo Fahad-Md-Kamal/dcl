@@ -1,7 +1,11 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:starterApp/views/informationView.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:image_picker/image_picker.dart';
 
 class FormView extends StatefulWidget {
   static const routeName = 'FormView';
@@ -17,20 +21,40 @@ class _FormViewState extends State<FormView> {
   TextEditingController _contactController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
+  final picker = ImagePicker();
 
+  File _image;
+  String _imageData;
   String _fname;
   String _sname;
   String _contact;
   String _email;
   String _password;
 
-  void storeData() async {
+  Future getImage() async {
+    final pickedImage = await picker.getImage(source: ImageSource.camera);
+    setState(() {
+      if (pickedImage != null) {
+        _image = File(pickedImage.path);
+      } else {
+        print('No Image Selected');
+      }
+    });
+  }
+
+  void _storeData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('fname', _fname);
     prefs.setString('sname', _sname);
     prefs.setString('contact', _contact);
     prefs.setString('email', _email);
     prefs.setString('password', _password);
+    if (_image != null) {
+      setState(() {
+        _imageData = base64Encode(_image.readAsBytesSync());
+      });
+      prefs.setString('imageData', _imageData);
+    }
   }
 
   @override
@@ -42,12 +66,28 @@ class _FormViewState extends State<FormView> {
       drawer: Drawer(),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 100),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Center(
+                  child: _image == null
+                      ? Text('Image Picker Example')
+                      : ClipRRect(
+                          borderRadius: BorderRadius.circular(10.0),
+                          child: Image.file(
+                            _image,
+                          ),
+                        ),
+                ),
+
+                IconButton(
+                  icon: Icon(Icons.add_a_photo),
+                  onPressed: getImage,
+                ),
+
                 /// First Name
                 TextFormField(
                   controller: _fnamController,
@@ -136,7 +176,9 @@ class _FormViewState extends State<FormView> {
                   onPressed: () {
                     if (_formKey.currentState.validate()) {
                       _formKey.currentState.save();
-                      storeData();
+
+                      _storeData();
+
                       _fnamController.clear();
                       _snameController.clear();
                       _contactController.clear();
@@ -145,13 +187,14 @@ class _FormViewState extends State<FormView> {
 
                       /// Showing message for success pop-up.
                       Fluttertoast.showToast(
-                          msg: 'Information Stored Successfully',
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.BOTTOM,
-                          timeInSecForIosWeb: 2,
-                          backgroundColor: Colors.green.shade700,
-                          textColor: Colors.white,
-                          fontSize: 16.0);
+                        msg: 'Information Stored Successfully',
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        timeInSecForIosWeb: 2,
+                        backgroundColor: Colors.green.shade700,
+                        textColor: Colors.white,
+                        fontSize: 16.0,
+                      );
 
                       /// Navigating to the Information View page
                       Navigator.pushNamed(
