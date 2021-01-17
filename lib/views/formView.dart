@@ -15,6 +15,7 @@ class FormView extends StatefulWidget {
 
 class _FormViewState extends State<FormView> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool isTakingImage = false;
 
   TextEditingController _fnamController = TextEditingController();
   TextEditingController _snameController = TextEditingController();
@@ -31,8 +32,19 @@ class _FormViewState extends State<FormView> {
   String _email;
   String _password;
 
-  Future getImage() async {
+  Future getCamaraImage() async {
     final pickedImage = await picker.getImage(source: ImageSource.camera);
+    setState(() {
+      if (pickedImage != null) {
+        _image = File(pickedImage.path);
+      } else {
+        print('No Image Selected');
+      }
+    });
+  }
+
+  Future getStorageImage() async {
+    final pickedImage = await picker.getImage(source: ImageSource.gallery);
     setState(() {
       if (pickedImage != null) {
         _image = File(pickedImage.path);
@@ -82,10 +94,22 @@ class _FormViewState extends State<FormView> {
                           ),
                         ),
                 ),
-
-                IconButton(
-                  icon: Icon(Icons.add_a_photo),
-                  onPressed: getImage,
+                SizedBox(height: 30),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    RaisedButton.icon(
+                      label: Text('camera'),
+                      icon: Icon(Icons.camera_alt),
+                      onPressed: getStorageImage,
+                    ),
+                    SizedBox(width: 50.0),
+                    RaisedButton.icon(
+                      label: Text('Storage'),
+                      icon: Icon(Icons.photo),
+                      onPressed: getStorageImage,
+                    ),
+                  ],
                 ),
 
                 /// First Name
@@ -203,7 +227,7 @@ class _FormViewState extends State<FormView> {
                       );
                     }
                   },
-                )
+                ),
               ],
             ),
           ),

@@ -14,7 +14,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Fahad Md Kamal',
       theme: ThemeData(
-        buttonColor: Colors.tealAccent,
+        buttonColor: Colors.teal.shade500,
+        buttonTheme: ButtonThemeData(
+          buttonColor: Colors.teal.shade400,
+          // textTheme: ButtonTextTheme.accent,
+        ),
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
